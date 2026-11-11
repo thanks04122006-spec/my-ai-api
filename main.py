@@ -81,3 +81,12 @@ def chat(request: ChatRequest):
     send_list = trim_history(request.history + [{"type": "user_input", "content": [{"type": "text", "text": request.message}]}], MAX_TURNS)
     reply = ask_gemini(client, SYSTEM_PROMPT, send_list)
     return ChatReply(answer=reply.output_text, history=send_list + [step.model_dump(mode="json") for step in reply.steps])
+    
+# 🧪 [실습 6-2] 접근 코드를 정하고 서버를 다시 켠 뒤 시험 (요청 1번)
+ACCESS_CODE = "class13-7429"        # ★ (직접 작성) 내가 정하는 접근 코드 — 영어 · 숫자 · 하이픈만 · 남에게 알려 주지 않음
+start_server()                      # 환경 변수 APP_ACCESS_CODE 를 넣어 서버를 다시 켬
+
+call("POST", "/explain", {"word": "헤더"})                                              # 코드 없이 → 401
+call("POST", "/explain", {"word": "헤더"}, headers={"X-Access-Code": "wrong-code"})      # 틀린 코드 → 401
+# ※ 헤더 값에는 영어 · 숫자 · 하이픈만 씀 (한글을 넣으면 requests 가 UnicodeEncodeError)
+call("POST", "/explain", {"word": "헤더"}, headers={"X-Access-Code": ACCESS_CODE})      # 맞는 코드 → 200
